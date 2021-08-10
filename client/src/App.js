@@ -3,11 +3,10 @@ import MyToken from "./contracts/MyToken.json";
 import MyTokenSale from "./contracts/MyTokenSale.json";
 import KycContract from "./contracts/KycContract.json";
 import getWeb3 from "./getWeb3";
-
 import "./App.css";
 
 class App extends Component {
-  state = { loaded: false };
+  state = { loaded: false, kycAddress: "0x123..."};
 
   componentDidMount = async () => {
     try {
@@ -18,7 +17,7 @@ class App extends Component {
       this.accounts = await this.web3.eth.getAccounts();
 
       // Get the contract instance.
-      this.networkId = await this.web3.eth.net.getChainId();
+      this.networkId = await this.web3.eth.net.getId();
       
       this.myToken = new this.web3.eth.Contract(
         MyToken.abi,
@@ -46,23 +45,32 @@ class App extends Component {
     }
   };
 
+  handleInputChange = (event) => {
+    const target = event.target;
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    const name = target.name;
+    this.setState({
+      [name]: value
+    });
+  }
+
+  handleKycWhitelisting = async () => {
+    await this.kycInstance.methods.setKycCompleted(this.state.kycAddress).send({from: this.accounts[0]});
+    alert("KYC for "+this.state.kycAddress+" is completed");
+
+  }
+  
   render() {
     if (!this.state.loaded) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
     return (
       <div className="App">
-        <h1>Good to Go!</h1>
-        <p>Your Truffle Box is installed and ready.</p>
-        <h2>Smart Contract Example</h2>
-        <p>
-          If your contracts compiled and migrated successfully, below will show
-          a stored value of 5 (by default).
-        </p>
-        <p>
-          Try changing the value stored on <strong>line 42</strong> of App.js.
-        </p>
-        <div>The stored value is: {this.state.storageValue}</div>
+        <h1>CommunityToken Tokensale</h1>
+        <p>Keeping Money in the Community</p>
+        <h2>Kyc Whitelisting</h2>
+        Address to allow: <input type="test" name="kycAddress" value={this.state.kycAddress} onChange={this.handleInputChange} />
+        <button type="button" onClick={this.handleKycWhitelisting}>Add to whitelist</button>
       </div>
     );
   }
